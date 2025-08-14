@@ -1,0 +1,42 @@
+import os
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
+from werkzeug.middleware.proxy_fix import ProxyFix
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+
+class Base(DeclarativeBase):
+    pass
+
+db = SQLAlchemy(model_class=Base)
+
+# Create the app
+app = Flask(__name__)
+app.secret_key = os.environ.get("SESSION_SECRET", "ag3su65fiyv6i86i8eruijterie8teuitfwtu7d")
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
+# Configure the database
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///biryani_club.db")
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_recycle": 300,
+    "pool_pre_ping": True,
+}
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 1 day in seconds
+
+# Initialize the app with the extension
+db.init_app(app)
+
+with app.app_context():
+    # Import models and routes
+    import models
+    import routes
+    
+    # Create all tables
+    db.create_all()
+    
+    # Initialize default data
+    routes.initialize_default_data()
