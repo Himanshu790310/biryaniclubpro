@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="text-center">
+                <h1 class="display-4 mb-3">
+                    <i class="fas fa-shopping-cart text-primary"></i> 
+                    {% if checkout %}Checkout{% else %}Shopping Cart{% endif %}
+                </h1>
+                {% if not checkout %}
+                    <p class="lead">Review your delicious selections</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if cart_items %}
+    <div class="row">
+        <!-- Cart Items -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i> Order Items ({{ cart_items|length }} items)
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% for item in cart_items %}
+                    <div class="d-flex align-items-center p-3 {% if not loop.last %}border-bottom{% endif %}">
+                        <div class="fs-3 me-3">{{ item.emoji }}</div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ item.name }}</h6>
+                            <p class="text-muted mb-0">₹{{ "%.2f"|format(item.price) }} each</p>
+                        </div>
+                        <div class="text-center me-3">
+                            {% if not checkout %}
+                            <form action="{{ url_for('update_cart') }}" method="POST" class="d-flex align-items-center gap-2">
+                                <input type="hidden" name="item_id" value="{{ item.id }}">
+                                <div class="input-group" style="width: 120px;">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                            onclick="updateQuantity(this, -1)">-</button>
+                                    <input type="number" name="quantity" value="{{ item.quantity }}" 
+                                           min="0" max="10" class="form-control form-control-sm text-center"
+                                           onchange="this.form.submit()">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                            onclick="updateQuantity(this, 1)">+</button>
+                                </div>
+                            </form>
+                            {% else %}
+                            <span class="badge bg-primary rounded-pill">{{ item.quantity }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="text-end" style="width: 80px;">
+                            <strong>₹{{ "%.2f"|format(item.total) }}</strong>
+                            {% if not checkout %}
+                            <br>
+                            <form action="{{ url_for('update_cart') }}" method="POST" class="d-inline">
+                                <input type="hidden" name="item_id" value="{{ item.id }}">
+                                <input type="hidden" name="quantity" value="0">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if not checkout %}
+            <div class="d-flex gap-2 mb-4">
+                <a href="{{ url_for('menu') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left"></i> Continue Shopping
+                </a>
+                <a href="{{ url_for('clear_cart') }}" class="btn btn-outline-danger" 
+                   onclick="return confirm('Are you sure you want to clear your cart?')">
+                    <i class="fas fa-trash"></i> Clear Cart
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calculator"></i> Order Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>₹{{ "%.2f"|format(subtotal) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Delivery:</span>
+                        <span class="text-success">Free</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong>Total:</strong>
+                        <strong>₹{{ "%.2f"|format(subtotal) }}</strong>
+                    </div>
+
+                    {% if not checkout %}
+                    <!-- Coupon Code -->
+                    <div class="mb-3">
+                        <label for="coupon_preview" class="form-label">Have a coupon?</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="coupon_preview" placeholder="Enter coupon code">
+                            <button class="btn btn-outline-secondary" type="button" onclick="validateCoupon()">
+                                Apply
+                            </button>
+                        </div>
+                        <div id="coupon_message" class="mt-2"></div>
+                    </div>
+
+                    {% if store_open %}
+                    <a href="{{ url_for('checkout') }}" class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-credit-card"></i> Proceed to Checkout
+                    </a>
+                    {% else %}
+                    <button class="btn btn-secondary btn-lg w-100" disabled>
+                        <i class="fas fa-store-slash"></i> Store Closed
+                    </button>
+                    <small class="text-muted mt-2 d-block text-center">Cannot checkout when store is closed</small>
+                    {% endif %}
+                    {% else %}
+                    <!-- Checkout Form -->
+                    <form action="{{ url_for('checkout') }}" method="POST" id="checkout-form">
+                        <div class="mb-3">
+                            <label for="customer_name" class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" id="customer_name" name="customer_name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="customer_phone" class="form-label">Phone Number *</label>
+                            <input type="tel" class="form-control" id="customer_phone" name="customer_phone" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="customer_address" class="form-label">Delivery Address *</label>
+                            <textarea class="form-control" id="customer_address" name="customer_address" rows="3" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="payment_method" class="form-label">Payment Method *</label>
+                            <select class="form-select" id="payment_method" name="payment_method" required>
+                                <option value="">Select Payment Method</option>
+                                <option value="cash">Cash on Delivery</option>
+                                <option value="card">Credit/Debit Card</option>
+                                <option value="upi">UPI Payment</option>
+                                <option value="wallet">Digital Wallet</option>
+                            </select>
+                        </div>
+
+                        <!-- UPI Payment Info -->
+                        <div id="upi-info" class="mb-3" style="display: none;">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-qrcode"></i> UPI Payment
+                                    </h6>
+                                    <p class="small text-muted mb-2">Scan QR code after placing order</p>
+                                    <div class="d-flex align-items-center justify-content-center gap-2">
+                                        <i class="fab fa-google-pay text-primary fs-4"></i>
+                                        <i class="fas fa-mobile-alt text-success fs-4"></i>
+                                        <span class="badge bg-primary">7903102794@ptsbi</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="coupon_code" class="form-label">Coupon Code</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="coupon_code" name="coupon_code" placeholder="Optional">
+                                <button class="btn btn-outline-secondary" type="button" onclick="validateCheckoutCoupon()">
+                                    Apply
+                                </button>
+                            </div>
+                            <div id="checkout_coupon_message" class="mt-2"></div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check"></i> Place Order
+                            </button>
+                            <a href="{{ url_for('cart') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Cart
+                            </a>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Loyalty Points -->
+            {% if get_current_user() %}
+            <div class="card mt-3">
+                <div class="card-body text-center">
+                    <h6 class="card-title">
+                        <i class="fas fa-star text-warning"></i> Loyalty Points
+                    </h6>
+                    <p class="mb-1">Current Points: <strong>{{ get_current_user().loyalty_points }}</strong></p>
+                    <p class="text-muted small mb-0">Earn {{ "%.0f"|format(subtotal/10) }} points with this order!</p>
+                    <span class="badge mt-2" style="background-color: {{ get_current_user().get_tier_color() }}">
+                        {{ get_current_user().loyalty_tier.title() }} Member
+                    </span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty Cart -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card text-center">
+                <div class="card-body py-5">
+                    <div class="fs-1 text-muted mb-4">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h3>Your cart is empty</h3>
+                    <p class="text-muted mb-4">Looks like you haven't added any delicious items to your cart yet.</p>
+                    <a href="{{ url_for('menu') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-utensils"></i> Explore Our Menu
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function updateQuantity(button, change) {
+        const input = button.parentElement.querySelector('input[name="quantity"]');
+        const currentValue = parseInt(input.value);
+        const newValue = Math.max(0, Math.min(10, currentValue + change));
+        input.value = newValue;
+        
+        // Submit the form
+        input.closest('form').submit();
+    }
+
+    function validateCoupon() {
+        const code = document.getElementById('coupon_preview').value.trim();
+        const subtotal = {{ subtotal }};
+        
+        if (!code) {
+            showCouponMessage('Please enter a coupon code', 'warning');
+            return;
+        }
+
+        fetch('/api/validate_coupon', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                code: code,
+                subtotal: subtotal
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.valid) {
+                showCouponMessage(data.message, 'success');
+                // Copy coupon to checkout form if exists
+                const checkoutCoupon = document.getElementById('coupon_code');
+                if (checkoutCoupon) {
+                    checkoutCoupon.value = code;
+                }
+            } else {
+                showCouponMessage(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            showCouponMessage('Error validating coupon', 'danger');
+            console.error('Error:', error);
+        });
+    }
+
+    function validateCheckoutCoupon() {
+        const code = document.getElementById('coupon_code').value.trim();
+        const subtotal = {{ subtotal }};
+        
+        if (!code) {
+            showCheckoutCouponMessage('Please enter a coupon code', 'warning');
+            return;
+        }
+
+        fetch('/api/validate_coupon', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                code: code,
+                subtotal: subtotal
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.valid) {
+                showCheckoutCouponMessage(data.message, 'success');
+            } else {
+                showCheckoutCouponMessage(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            showCheckoutCouponMessage('Error validating coupon', 'danger');
+            console.error('Error:', error);
+        });
+    }
+
+    function showCouponMessage(message, type) {
+        const messageDiv = document.getElementById('coupon_message');
+        messageDiv.innerHTML = `<div class="alert alert-${type} alert-sm">${message}</div>`;
+        setTimeout(() => {
+            messageDiv.innerHTML = '';
+        }, 5000);
+    }
+
+    function showCheckoutCouponMessage(message, type) {
+        const messageDiv = document.getElementById('checkout_coupon_message');
+        messageDiv.innerHTML = `<div class="alert alert-${type} alert-sm">${message}</div>`;
+        setTimeout(() => {
+            messageDiv.innerHTML = '';
+        }, 5000);
+    }
+
+    // Payment method change handler
+    document.getElementById('payment_method')?.addEventListener('change', function() {
+        const upiInfo = document.getElementById('upi-info');
+        if (this.value === 'upi') {
+            upiInfo.style.display = 'block';
+        } else {
+            upiInfo.style.display = 'none';
+        }
+    });
+
+    // Form validation
+    document.getElementById('checkout-form')?.addEventListener('submit', function(e) {
+        const phone = document.getElementById('customer_phone').value.trim();
+        const phonePattern = /^[0-9]{10,15}$/;
+        
+        if (!phonePattern.test(phone.replace(/[-\s\(\)]/g, ''))) {
+            e.preventDefault();
+            alert('Please enter a valid phone number (10-15 digits)');
+            return false;
+        }
+    });
+</script>
+{% endblock %}

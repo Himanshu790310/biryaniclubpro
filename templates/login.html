@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <div class="fs-1 text-primary mb-3">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <h2 class="card-title">Welcome Back!</h2>
+                        <p class="text-muted">Sign in to your account</p>
+                    </div>
+
+                    <form method="POST" id="login-form">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">
+                                <i class="fas fa-user"></i> Username
+                            </label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock"></i> Password
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" name="password" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                                    <i class="fas fa-eye" id="password-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt"></i> Sign In
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center">
+                        <p class="text-muted">Don't have an account?</p>
+                        <a href="{{ url_for('register') }}" class="btn btn-outline-success">
+                            <i class="fas fa-user-plus"></i> Create Account
+                        </a>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="text-center">
+                        <h6 class="text-muted mb-3">Demo Accounts</h6>
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <button type="button" class="btn btn-outline-warning btn-sm w-100" onclick="fillDemo('admin', 'admin123')">
+                                    <i class="fas fa-tools"></i> Admin Demo
+                                </button>
+                            </div>
+                            <div class="col-12">
+                                <button type="button" class="btn btn-outline-info btn-sm w-100" onclick="fillDemo('delivery1', 'delivery123')">
+                                    <i class="fas fa-truck"></i> Delivery Demo
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-muted small mt-2">Click to auto-fill demo credentials</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-3">
+                <a href="{{ url_for('home') }}" class="btn btn-link">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const passwordEye = document.getElementById('password-eye');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            passwordEye.className = 'fas fa-eye-slash';
+        } else {
+            passwordInput.type = 'password';
+            passwordEye.className = 'fas fa-eye';
+        }
+    }
+
+    function fillDemo(username, password) {
+        document.getElementById('username').value = username;
+        document.getElementById('password').value = password;
+    }
+
+    // Focus on username field when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('username').focus();
+    });
+
+    // Form validation
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        
+        if (!username || !password) {
+            e.preventDefault();
+            alert('Please enter both username and password');
+            return false;
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <div class="fs-1 text-primary mb-3">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <h2 class="card-title">Join Biryani Club!</h2>
+                        <p class="text-muted">Create your account to start ordering</p>
+                    </div>
+
+                    <form method="POST" id="register-form">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="username" class="form-label">
+                                    <i class="fas fa-user"></i> Username *
+                                </label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                                <div class="form-text">Choose a unique username</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">
+                                    <i class="fas fa-envelope"></i> Email *
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="password" class="form-label">
+                                    <i class="fas fa-lock"></i> Password *
+                                </label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')">
+                                        <i class="fas fa-eye" id="password-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">Minimum 6 characters</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="confirm_password" class="form-label">
+                                    <i class="fas fa-lock"></i> Confirm Password *
+                                </label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirm_password')">
+                                        <i class="fas fa-eye" id="confirm_password-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="full_name" class="form-label">
+                                    <i class="fas fa-id-card"></i> Full Name
+                                </label>
+                                <input type="text" class="form-control" id="full_name" name="full_name">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">
+                                    <i class="fas fa-phone"></i> Phone Number
+                                </label>
+                                <input type="tel" class="form-control" id="phone" name="phone">
+                                <div class="form-text">10-15 digits only</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="terms" required>
+                                <label class="form-check-label" for="terms">
+                                    I agree to the <a href="#" class="text-primary">Terms of Service</a> and 
+                                    <a href="#" class="text-primary">Privacy Policy</a>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-plus"></i> Create Account
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <p class="text-muted">Already have an account?</p>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-success">
+                            <i class="fas fa-sign-in-alt"></i> Sign In
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-3">
+                <a href="{{ url_for('home') }}" class="btn btn-link">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function togglePassword(fieldId) {
+        const passwordInput = document.getElementById(fieldId);
+        const passwordEye = document.getElementById(fieldId + '-eye');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            passwordEye.className = 'fas fa-eye-slash';
+        } else {
+            passwordInput.type = 'password';
+            passwordEye.className = 'fas fa-eye';
+        }
+    }
+
+    // Real-time password validation
+    document.getElementById('password').addEventListener('input', function() {
+        const password = this.value;
+        const confirmPassword = document.getElementById('confirm_password');
+        
+        // Password strength indicator
+        let strength = 0;
+        if (password.length >= 6) strength++;
+        if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
+        if (password.match(/[0-9]/)) strength++;
+        if (password.match(/[^a-zA-Z0-9]/)) strength++;
+        
+        const strengthText = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+        const strengthColors = ['danger', 'warning', 'info', 'primary', 'success'];
+        
+        let strengthElement = document.getElementById('password-strength');
+        if (!strengthElement) {
+            strengthElement = document.createElement('div');
+            strengthElement.id = 'password-strength';
+            strengthElement.className = 'form-text mt-1';
+            this.parentElement.parentElement.appendChild(strengthElement);
+        }
+        
+        if (password.length > 0) {
+            strengthElement.innerHTML = `<span class="text-${strengthColors[strength]}">Password strength: ${strengthText[strength]}</span>`;
+        } else {
+            strengthElement.innerHTML = '';
+        }
+        
+        // Check password match
+        if (confirmPassword.value) {
+            checkPasswordMatch();
+        }
+    });
+
+    // Password match validation
+    document.getElementById('confirm_password').addEventListener('input', checkPasswordMatch);
+
+    function checkPasswordMatch() {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        
+        let matchElement = document.getElementById('password-match');
+        if (!matchElement) {
+            matchElement = document.createElement('div');
+            matchElement.id = 'password-match';
+            matchElement.className = 'form-text mt-1';
+            document.getElementById('confirm_password').parentElement.parentElement.appendChild(matchElement);
+        }
+        
+        if (confirmPassword.length > 0) {
+            if (password === confirmPassword) {
+                matchElement.innerHTML = '<span class="text-success"><i class="fas fa-check"></i> Passwords match</span>';
+            } else {
+                matchElement.innerHTML = '<span class="text-danger"><i class="fas fa-times"></i> Passwords do not match</span>';
+            }
+        } else {
+            matchElement.innerHTML = '';
+        }
+    }
+
+    // Email validation
+    document.getElementById('email').addEventListener('blur', function() {
+        const email = this.value;
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        
+        let emailElement = document.getElementById('email-validation');
+        if (!emailElement) {
+            emailElement = document.createElement('div');
+            emailElement.id = 'email-validation';
+            emailElement.className = 'form-text mt-1';
+            this.parentElement.appendChild(emailElement);
+        }
+        
+        if (email.length > 0) {
+            if (emailPattern.test(email)) {
+                emailElement.innerHTML = '<span class="text-success"><i class="fas fa-check"></i> Valid email</span>';
+            } else {
+                emailElement.innerHTML = '<span class="text-danger"><i class="fas fa-times"></i> Invalid email format</span>';
+            }
+        } else {
+            emailElement.innerHTML = '';
+        }
+    });
+
+    // Phone validation
+    document.getElementById('phone').addEventListener('input', function() {
+        const phone = this.value.replace(/[^0-9]/g, '');
+        this.value = phone;
+        
+        let phoneElement = document.getElementById('phone-validation');
+        if (!phoneElement) {
+            phoneElement = document.createElement('div');
+            phoneElement.id = 'phone-validation';
+            phoneElement.className = 'form-text mt-1';
+            this.parentElement.appendChild(phoneElement);
+        }
+        
+        if (phone.length > 0) {
+            if (phone.length >= 10 && phone.length <= 15) {
+                phoneElement.innerHTML = '<span class="text-success"><i class="fas fa-check"></i> Valid phone number</span>';
+            } else {
+                phoneElement.innerHTML = '<span class="text-warning"><i class="fas fa-exclamation-triangle"></i> Phone should be 10-15 digits</span>';
+            }
+        } else {
+            phoneElement.innerHTML = '';
+        }
+    });
+
+    // Form submission validation
+    document.getElementById('register-form').addEventListener('submit', function(e) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        const email = document.getElementById('email').value;
+        const phone = document.getElementById('phone').value;
+        
+        // Password validation
+        if (password.length < 6) {
+            e.preventDefault();
+            alert('Password must be at least 6 characters long');
+            return false;
+        }
+        
+        // Password match validation
+        if (password !== confirmPassword) {
+            e.preventDefault();
+            alert('Passwords do not match');
+            return false;
+        }
+        
+        // Email validation
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailPattern.test(email)) {
+            e.preventDefault();
+            alert('Please enter a valid email address');
+            return false;
+        }
+        
+        // Phone validation (if provided)
+        if (phone && (phone.length < 10 || phone.length > 15)) {
+            e.preventDefault();
+            alert('Phone number should be 10-15 digits');
+            return false;
+        }
+    });
+
+    // Focus on username field when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('username').focus();
+    });
+</script>
+{% endblock %}

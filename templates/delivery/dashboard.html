@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="text-center">
+                <h1 class="display-4">
+                    <i class="fas fa-truck text-primary"></i> Delivery Dashboard
+                </h1>
+                <p class="lead">Manage your delivery assignments</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="fs-1 text-warning mb-3">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3 class="card-title">{{ assigned_orders|length }}</h3>
+                    <p class="card-text text-muted">Active Deliveries</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="fs-1 text-success mb-3">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3 class="card-title">{{ completed_orders|length }}</h3>
+                    <p class="card-text text-muted">Recent Deliveries</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if assigned_orders %}
+    <!-- Active Deliveries -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-truck"></i> Active Deliveries
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% for order in assigned_orders %}
+                    <div class="p-4 {% if not loop.last %}border-bottom{% endif %}">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <strong>{{ order.order_id }}</strong>
+                                        <span class="badge bg-primary ms-2">₹{{ "%.2f"|format(order.total) }}</span>
+                                    </div>
+                                    <p class="text-muted small mb-0">
+                                        <i class="fas fa-clock"></i> {{ order.created_at.strftime('%I:%M %p') }}
+                                    </p>
+                                    {% if order.estimated_delivery %}
+                                    <p class="text-info small mb-0">
+                                        <i class="fas fa-target"></i> ETA: {{ order.estimated_delivery.strftime('%I:%M %p') }}
+                                    </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-user"></i> {{ order.customer_name }}
+                                    </h6>
+                                    <p class="text-muted small mb-1">
+                                        <i class="fas fa-phone"></i> 
+                                        <a href="tel:{{ order.customer_phone }}" class="text-decoration-none">
+                                            {{ order.customer_phone }}
+                                        </a>
+                                    </p>
+                                    <p class="text-muted small mb-0">
+                                        <i class="fas fa-map-marker-alt"></i> {{ order.customer_address }}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <button class="btn btn-sm btn-outline-info mb-2 w-100" 
+                                        onclick="showOrderItems('{{ order.order_id }}', {{ order.get_items()|tojson|escape }})">
+                                    <i class="fas fa-list"></i> View Items ({{ order.get_items()|length }})
+                                </button>
+                                <div class="d-flex gap-2">
+                                    <a href="tel:{{ order.customer_phone }}" class="btn btn-sm btn-outline-success flex-grow-1">
+                                        <i class="fas fa-phone"></i> Call
+                                    </a>
+                                    <a href="https://maps.google.com/?q={{ order.customer_address }}" 
+                                       target="_blank" class="btn btn-sm btn-outline-primary flex-grow-1">
+                                        <i class="fas fa-map"></i> Map
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-2 text-end">
+                                <form action="{{ url_for('admin_update_order', order_id=order.id) }}" method="POST">
+                                    <input type="hidden" name="status" value="delivered">
+                                    <button type="submit" class="btn btn-success" 
+                                            onclick="return confirm('Confirm delivery completed?')">
+                                        <i class="fas fa-check"></i> Delivered
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- No Active Deliveries -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card text-center">
+                <div class="card-body py-5">
+                    <div class="fs-1 text-muted mb-4">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h3>No active deliveries</h3>
+                    <p class="text-muted">You don't have any assigned deliveries at the moment.</p>
+                    <button class="btn btn-primary" onclick="location.reload()">
+                        <i class="fas fa-refresh"></i> Check for New Orders
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if completed_orders %}
+    <!-- Recent Deliveries -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history"></i> Recent Deliveries
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Delivered At</th>
+                                    <th>Rating</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in completed_orders %}
+                                <tr>
+                                    <td><strong>{{ order.order_id }}</strong></td>
+                                    <td>
+                                        <div>
+                                            {{ order.customer_name }}
+                                            <br><small class="text-muted">{{ order.customer_phone }}</small>
+                                        </div>
+                                    </td>
+                                    <td>₹{{ "%.2f"|format(order.total) }}</td>
+                                    <td class="text-muted">
+                                        {{ order.created_at.strftime('%d %b %Y, %I:%M %p') }}
+                                    </td>
+                                    <td>
+                                        {% if order.rating %}
+                                            <div class="text-warning">
+                                                {% for i in range(order.rating) %}
+                                                    <i class="fas fa-star"></i>
+                                                {% endfor %}
+                                                {% for i in range(5 - order.rating) %}
+                                                    <i class="far fa-star"></i>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">No rating</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Order Items Modal -->
+<div class="modal fade" id="orderItemsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-list"></i> Order Items - <span id="modal-order-id"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="order-items-list"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function showOrderItems(orderId, items) {
+        document.getElementById('modal-order-id').textContent = orderId;
+        
+        let itemsHtml = '<div class="row g-3">';
+        
+        items.forEach(item => {
+            itemsHtml += `
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="card-title mb-0">${item.name}</h6>
+                                <span class="badge bg-primary">${item.quantity}x</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>₹${item.price.toFixed(2)} each</span>
+                                <strong>₹${item.total.toFixed(2)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        itemsHtml += '</div>';
+        
+        document.getElementById('order-items-list').innerHTML = itemsHtml;
+        
+        new bootstrap.Modal(document.getElementById('orderItemsModal')).show();
+    }
+
+    // Auto-refresh every 30 seconds
+    setInterval(function() {
+        if (document.visibilityState === 'visible') {
+            location.reload();
+        }
+    }, 30000);
+
+    // Geolocation for better delivery tracking (optional)
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            console.log('Current location:', position.coords.latitude, position.coords.longitude);
+            // This could be used to track delivery person location
+        });
+    }
+
+    // Notification sound for new orders (would require WebSocket in real implementation)
+    function playNotificationSound() {
+        if (window.Audio) {
+            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaETOQzfPSkC4LJG/M7+GTQQY=');
+            audio.play().catch(e => console.log('Could not play notification sound'));
+        }
+    }
+
+    // Check for urgent deliveries (over 45 minutes)
+    document.addEventListener('DOMContentLoaded', function() {
+        const deliveryCards = document.querySelectorAll('[data-order-time]');
+        const now = new Date();
+        
+        deliveryCards.forEach(card => {
+            const orderTime = new Date(card.dataset.orderTime);
+            const timeDiff = (now - orderTime) / (1000 * 60); // minutes
+            
+            if (timeDiff > 45) {
+                card.style.borderLeft = '4px solid #dc3545';
+                card.querySelector('.card-body').insertAdjacentHTML('afterbegin', 
+                    '<div class="alert alert-warning alert-sm mb-2"><i class="fas fa-exclamation-triangle"></i> Urgent - Over 45 minutes!</div>');
+            }
+        });
+    });
+</script>
+{% endblock %}

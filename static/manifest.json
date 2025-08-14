@@ -1,0 +1,61 @@
+{
+    "name": "Biryani Club",
+    "short_name": "BiryaniClub",
+    "description": "Authentic biryani delivery app with royal taste",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#667eea",
+    "theme_color": "#ff6b35",
+    "orientation": "portrait-primary",
+    "categories": ["food", "restaurant", "delivery"],
+    "lang": "en",
+    "scope": "/",
+    "icons": [
+        {
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMjQiIGZpbGw9InVybCgjZ3JhZGllbnQwX2xpbmVhcl8xXzEpIi8+CjxwYXRoIGQ9Ik05NiA0OEM3NC4zIDQ4IDU2IDY2LjMgNTYgODhWMTQ0QzU2IDE0NC42IDU2LjQgMTQ1IDU3IDE0NUgxMzVDMTM1LjYgMTQ1IDEzNiAxNDQuNiAxMzYgMTQ0Vjg4QzEzNiA2Ni4zIDExNy43IDQ4IDk2IDQ4WiIgZmlsbD0iI0ZGRkZGRiIgZmlsbC1vcGFjaXR5PSIwLjkiLz4KPHA+PGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQwX2xpbmVhcl8xXzEiIHgxPSIwIiB5MT0iMCIgeDI9IjE5MiIgeTI9IjE5MiIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPgo8c3RvcCBzdG9wLWNvbG9yPSIjRkY2QjM1Ii8+CjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0Y3OTMxRSIvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+CjwvcD4KPHA+PC9zdmc+",
+            "sizes": "192x192",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iNjQiIGZpbGw9InVybCgjZ3JhZGllbnQwX2xpbmVhcl8yXzIpIi8+CjxwYXRoIGQ9Ik0yNTYgMTI4QzE5OS4yIDEyOCAxNTMuNiAxNzMuNiAxNTMuNiAyMzAuNFYzODRDMTUzLjYgMzg1LjYgMTU0IDM4NyAxNTUuMiAzODdIMzU2LjhDMzU4IDM4NyAzNTguNCAzODUuNiAzNTguNCAzODRWMjMwLjRDMzU4LjQgMTczLjYgMzEyLjggMTI4IDI1NiAxMjhaIiBmaWxsPSIjRkZGRkZGIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8cGF0aCBkPSJNMjU2IDE2MEMyMTcuNiAxNjAgMTg1LjYgMTkyIDE4NS42IDIzMC40VjM1MkgzMjYuNFYyMzAuNEMzMjYuNCAzNTIgMjk0LjQgMTYwIDI1NiAxNjBaIiBmaWxsPSIjRkY2QjM1Ii8+CjxjaXJjbGUgY3g9IjI0MCIgY3k9IjIwOCIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIvPgo8Y2lyY2xlIGN4PSIyNzIiIGN5PSIyMDgiIHI9IjQiIGZpbGw9IiNGRkZGRkYiLz4KPGV2aXNlIGN4PSIyNjQiIGN5PSIyNDAiIHJ4PSIxMiIgcnk9IjgiIGZpbGw9IiNGRkZGRkYiLz4KPC9wYXRoPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudDBfbGluZWFyXzJfMiIgeDE9IjAiIHkxPSIwIiB4Mj0iNTEyIiB5Mj0iNTEyIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIHN0b3AtY29sb3I9IiNGRjZCMzUiLz4KPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjRjc5MzFFIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPC9zdmc+",
+            "sizes": "512x512",
+            "type": "image/svg+xml"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjU2OCIgdmlld0JveD0iMCAwIDMyMCA1NjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iNTY4IiByeD0iMjQiIGZpbGw9InVybCgjZ3JhZGllbnQwX2xpbmVhcl8zXzMpIi8+CjxyZWN0IHg9IjIwIiB5PSI2MCIgd2lkdGg9IjI4MCIgaGVpZ2h0PSI0MCIgcng9IjIwIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMjUpIi8+CjxyZWN0IHg9IjIwIiB5PSIxMjAiIHdpZHRoPSIyODAiIGhlaWdodD0iMTAwIiByeD0iMTIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4yNSkiLz4KPHN2ZyB4PSI0MCIgeT0iMTMwIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiPgo8Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxNSIgZmlsbD0iI0ZGNkIzNSIvPgo8L3N2Zz4KPHRleHQgeD0iMTAwIiB5PSIxNTAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzMzMyI+Q2hpY2tlbiBCaXJ5YW5pPC90ZXh0Pgo8dGV4dCB4PSIxMDAiIHk9IjE3MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY2Ij7igLkzOTk8L3RleHQ+CjwvcmVjdD4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQwX2xpbmVhcl8zXzMiIHgxPSIwIiB5MT0iMCIgeDI9IjMyMCIgeTI9IjU2OCIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPgo8c3RvcCBzdG9wLWNvbG9yPSIjNjY3RUVBIi8+CjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0ZFQ0ZFRiIvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+Cjwvc3ZnPg==",
+            "sizes": "320x568",
+            "type": "image/svg+xml",
+            "form_factor": "narrow"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Order Food",
+            "short_name": "Order",
+            "description": "Browse menu and place an order",
+            "url": "/menu",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHN2ZyB4PSIyNCIgeT0iMjQiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCI+CjxjaXJjbGUgY3g9IjI0IiBjeT0iMjQiIHI9IjI0IiBmaWxsPSIjRkY2QjM1Ii8+CjxwYXRoIGQ9Ik0zNiAxOEgyMEMxOC45IDE4IDE4IDE4LjkgMTggMjBWMjhDMTggMjkuMSAxOC45IDMwIDIwIDMwSDM2QzM3LjEgMzAgMzggMjkuMSAzOCAyOFYyMEMzOCAxOC45IDM3LjEgMTggMzYgMThaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4KPC9zdmc+",
+                    "sizes": "96x96",
+                    "type": "image/svg+xml"
+                }
+            ]
+        },
+        {
+            "name": "My Orders",
+            "short_name": "Orders", 
+            "description": "Track your orders",
+            "url": "/my_orders",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHN2ZyB4PSIyNCIgeT0iMjQiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCI+CjxjaXJjbGUgY3g9IjI0IiBjeT0iMjQiIHI9IjI0IiBmaWxsPSIjNEVDREM0Ii8+CjxwYXRoIGQ9Ik0zNiAxOEgyMEMxOC45IDE4IDE4IDE4LjkgMTggMjBWMjhDMTggMjkuMSAxOC45IDMwIDIwIDMwSDM2QzM3LjEgMzAgMzggMjkuMSAzOCAyOFYyMEMzOCAxOC45IDM3LjEgMTggMzYgMThaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4KPC9zdmc+",
+                    "sizes": "96x96",
+                    "type": "image/svg+xml"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="hero-section text-center">
+        <div class="position-relative">
+            <h1 class="display-3 fw-bold mb-4">
+                <i class="fas fa-utensils"></i> Welcome to Biryani Club
+            </h1>
+            <p class="lead fs-4 mb-5">Authentic flavors, royal taste, delivered to your doorstep</p>
+            {% if store_open %}
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{{ url_for('menu') }}" class="btn btn-success btn-lg">
+                        <i class="fas fa-book-open"></i> Explore Menu
+                    </a>
+                    <a href="{{ url_for('cart') }}" class="btn btn-info btn-lg">
+                        <i class="fas fa-shopping-cart"></i> View Cart
+                    </a>
+                </div>
+            {% else %}
+                <div class="alert alert-warning d-inline-block">
+                    <i class="fas fa-clock"></i> We're currently closed. Please check back later!
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Store Status -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="d-flex justify-content-center align-items-center gap-3">
+                        {% if store_open %}
+                            <div class="text-success">
+                                <i class="fas fa-circle fa-2x"></i>
+                            </div>
+                            <div>
+                                <h3 class="card-title text-success mb-1">We're Open!</h3>
+                                <p class="card-text">Ready to serve delicious biryani</p>
+                            </div>
+                        {% else %}
+                            <div class="text-danger">
+                                <i class="fas fa-circle fa-2x"></i>
+                            </div>
+                            <div>
+                                <h3 class="card-title text-danger mb-1">Currently Closed</h3>
+                                <p class="card-text">We'll be back soon!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular Items -->
+    {% if menu_items %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">
+                <i class="fas fa-star text-warning"></i> Popular Items
+            </h2>
+        </div>
+    </div>
+    
+    <div class="row g-4 mb-5">
+        {% for item in menu_items %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="fs-1">{{ item.emoji or '🍽️' }}</div>
+                        <div class="price-tag">₹{{ "%.0f"|format(item.price) }}</div>
+                    </div>
+                    <h5 class="card-title">{{ item.name }}</h5>
+                    <p class="card-text text-muted">{{ item.description or 'Delicious ' + item.name }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-secondary">{{ item.category }}</span>
+                        <span class="text-muted small">
+                            <i class="fas fa-heart text-danger"></i> {{ item.popularity }}
+                        </span>
+                    </div>
+                </div>
+                {% if store_open %}
+                <div class="card-footer bg-transparent">
+                    <form action="{{ url_for('add_to_cart') }}" method="POST" class="d-flex gap-2">
+                        <input type="hidden" name="item_id" value="{{ item.id }}">
+                        <input type="number" name="quantity" value="1" min="1" max="10" class="form-control" style="width: 80px;">
+                        <button type="submit" class="btn btn-primary flex-grow-1">
+                            <i class="fas fa-plus"></i> Add to Cart
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Categories -->
+    {% if categories %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">
+                <i class="fas fa-th-large"></i> Browse by Category
+            </h2>
+        </div>
+    </div>
+    
+    <div class="row g-4 mb-5">
+        {% for category in categories %}
+        <div class="col-md-6 col-lg-3">
+            <a href="{{ url_for('menu', category=category) }}" class="text-decoration-none">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="fs-1 mb-3">
+                            {% if category == 'Biryani' %}🍛
+                            {% elif category == 'Starters' %}🥘
+                            {% elif category == 'Sides' %}🥗
+                            {% elif category == 'Desserts' %}🍰
+                            {% elif category == 'Beverages' %}🥤
+                            {% else %}🍽️
+                            {% endif %}
+                        </div>
+                        <h5 class="card-title">{{ category }}</h5>
+                        <p class="card-text text-muted">Explore our {{ category.lower() }} collection</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Features -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">
+                <i class="fas fa-crown text-warning"></i> Why Choose Biryani Club?
+            </h2>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="text-primary fs-1 mb-3">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h5 class="card-title">Authentic Recipes</h5>
+                    <p class="card-text">Traditional recipes passed down through generations</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="text-success fs-1 mb-3">
+                        <i class="fas fa-shipping-fast"></i>
+                    </div>
+                    <h5 class="card-title">Fast Delivery</h5>
+                    <p class="card-text">Hot and fresh biryani delivered in 30 minutes</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="text-warning fs-1 mb-3">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h5 class="card-title">Premium Quality</h5>
+                    <p class="card-text">Only the finest ingredients and spices used</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="text-info fs-1 mb-3">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h5 class="card-title">Customer Love</h5>
+                    <p class="card-text">Thousands of satisfied customers across the city</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

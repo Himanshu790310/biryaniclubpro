@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="text-center">
+                <div class="fs-1 text-primary mb-3">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h1 class="display-4">My Profile</h1>
+                <p class="lead">Manage your account and preferences</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Profile Information -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user"></i> Profile Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('profile') }}">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" value="{{ user.username }}" readonly>
+                                <div class="form-text">Username cannot be changed</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" value="{{ user.email }}" readonly>
+                                <div class="form-text">Email cannot be changed</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="full_name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="full_name" name="full_name" 
+                                       value="{{ user.full_name or '' }}">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" 
+                                       value="{{ user.phone or '' }}">
+                            </div>
+
+                            <div class="col-12">
+                                <label for="address" class="form-label">Default Address</label>
+                                <textarea class="form-control" id="address" name="address" rows="3"
+                                          placeholder="Enter your default delivery address">{{ user.address or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Profile
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary ms-2" onclick="resetForm()">
+                                <i class="fas fa-undo"></i> Reset
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Change Password -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lock"></i> Change Password
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('change_password') }}" id="password-form">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="current_password" class="form-label">Current Password</label>
+                                <input type="password" class="form-control" id="current_password" 
+                                       name="current_password" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="new_password" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="new_password" 
+                                       name="new_password" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="confirm_password" 
+                                       name="confirm_password" required>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-key"></i> Change Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Loyalty Program -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-star text-warning"></i> Loyalty Program
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <span class="badge p-3 fs-6" style="background-color: {{ user.get_tier_color() }}">
+                            {{ user.loyalty_tier.title() }} Member
+                        </span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h3 class="text-primary">{{ user.loyalty_points }}</h3>
+                        <p class="text-muted mb-0">Loyalty Points</p>
+                    </div>
+
+                    <div class="progress mb-3">
+                        {% set progress = ((user.loyalty_points % 500) / 500 * 100) if user.loyalty_tier != 'gold' else 100 %}
+                        <div class="progress-bar" role="progressbar" style="width: {{ progress }}%"></div>
+                    </div>
+
+                    {% if user.loyalty_tier == 'bronze' %}
+                        <p class="small text-muted">
+                            {{ 500 - user.loyalty_points }} more points to reach Silver tier
+                        </p>
+                    {% elif user.loyalty_tier == 'silver' %}
+                        <p class="small text-muted">
+                            {{ 1000 - user.loyalty_points }} more points to reach Gold tier
+                        </p>
+                    {% else %}
+                        <p class="small text-success">
+                            <i class="fas fa-crown"></i> You've reached the highest tier!
+                        </p>
+                    {% endif %}
+
+                    <hr>
+                    <h6>Tier Benefits</h6>
+                    <ul class="list-unstyled small text-muted">
+                        {% if user.loyalty_tier == 'bronze' %}
+                            <li><i class="fas fa-check text-success"></i> 1 point per ₹10 spent</li>
+                            <li><i class="fas fa-times text-muted"></i> Priority support</li>
+                            <li><i class="fas fa-times text-muted"></i> Exclusive offers</li>
+                        {% elif user.loyalty_tier == 'silver' %}
+                            <li><i class="fas fa-check text-success"></i> 1 point per ₹10 spent</li>
+                            <li><i class="fas fa-check text-success"></i> Priority support</li>
+                            <li><i class="fas fa-times text-muted"></i> Exclusive offers</li>
+                        {% else %}
+                            <li><i class="fas fa-check text-success"></i> 1 point per ₹10 spent</li>
+                            <li><i class="fas fa-check text-success"></i> Priority support</li>
+                            <li><i class="fas fa-check text-success"></i> Exclusive offers</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Account Stats -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar"></i> Account Stats
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Member Since:</span>
+                        <strong>{{ user.created_at.strftime('%b %Y') }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Total Orders:</span>
+                        <strong>{{ recent_orders|length }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Last Login:</span>
+                        <strong>{{ user.last_login.strftime('%d %b %Y') if user.last_login else 'First time' }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt"></i> Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('menu') }}" class="btn btn-primary">
+                            <i class="fas fa-utensils"></i> Order Food
+                        </a>
+                        <a href="{{ url_for('my_orders') }}" class="btn btn-outline-info">
+                            <i class="fas fa-list-alt"></i> View Orders
+                        </a>
+                        <a href="{{ url_for('cart') }}" class="btn btn-outline-success">
+                            <i class="fas fa-shopping-cart"></i> View Cart
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if recent_orders %}
+    <!-- Recent Orders -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history"></i> Recent Orders
+                    </h5>
+                    <a href="{{ url_for('my_orders') }}" class="btn btn-sm btn-outline-primary">
+                        View All Orders
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Date</th>
+                                    <th>Items</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td><strong>{{ order.order_id }}</strong></td>
+                                    <td>{{ order.created_at.strftime('%d %b %Y') }}</td>
+                                    <td>{{ order.get_items()|length }} items</td>
+                                    <td>₹{{ "%.2f"|format(order.total) }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ order.get_status_color() }}">
+                                            {{ order.status.replace('_', ' ').title() }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function resetForm() {
+        document.querySelector('form').reset();
+    }
+
+    // Password form validation
+    document.getElementById('password-form').addEventListener('submit', function(e) {
+        const newPassword = document.getElementById('new_password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        
+        if (newPassword.length < 6) {
+            e.preventDefault();
+            alert('New password must be at least 6 characters long');
+            return false;
+        }
+        
+        if (newPassword !== confirmPassword) {
+            e.preventDefault();
+            alert('New passwords do not match');
+            return false;
+        }
+    });
+
+    // Real-time password validation
+    document.getElementById('new_password').addEventListener('input', function() {
+        const password = this.value;
+        const confirmPassword = document.getElementById('confirm_password');
+        
+        // Password strength indicator
+        let strength = 0;
+        if (password.length >= 6) strength++;
+        if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
+        if (password.match(/[0-9]/)) strength++;
+        if (password.match(/[^a-zA-Z0-9]/)) strength++;
+        
+        const strengthText = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+        const strengthColors = ['danger', 'warning', 'info', 'primary', 'success'];
+        
+        let strengthElement = document.getElementById('password-strength');
+        if (!strengthElement) {
+            strengthElement = document.createElement('div');
+            strengthElement.id = 'password-strength';
+            strengthElement.className = 'form-text mt-1';
+            this.parentElement.appendChild(strengthElement);
+        }
+        
+        if (password.length > 0) {
+            strengthElement.innerHTML = `<span class="text-${strengthColors[strength]}">Password strength: ${strengthText[strength]}</span>`;
+        } else {
+            strengthElement.innerHTML = '';
+        }
+    });
+
+    // Phone number formatting
+    document.getElementById('phone').addEventListener('input', function() {
+        const phone = this.value.replace(/[^0-9]/g, '');
+        this.value = phone;
+        
+        if (phone.length > 0 && (phone.length < 10 || phone.length > 15)) {
+            this.setCustomValidity('Phone number should be 10-15 digits');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+</script>
+{% endblock %}

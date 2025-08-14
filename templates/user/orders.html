@@ -1,0 +1,558 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="text-center">
+                <h1 class="display-4">
+                    <i class="fas fa-list-alt text-primary"></i> 
+                    {% if single_order %}Order Confirmation{% else %}My Orders{% endif %}
+                </h1>
+                {% if single_order %}
+                    <p class="lead">Your order has been placed successfully!</p>
+                {% else %}
+                    <p class="lead">Track your delicious orders</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if orders %}
+    <div class="row g-4">
+        {% for order in orders %}
+        <div class="col-12">
+            <div class="card {% if single_order %}border-success{% endif %}">
+                {% if single_order %}
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-check-circle"></i> Order Confirmed!
+                        </h5>
+                        <span class="badge bg-light text-success">{{ order.order_id }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Order Info -->
+                        <div class="col-lg-3">
+                            <div class="mb-3">
+                                <h6 class="text-muted">Order Details</h6>
+                                <div>
+                                    <strong>{{ order.order_id }}</strong>
+                                    <br><small class="text-muted">{{ order.created_at.strftime('%d %b %Y, %I:%M %p') }}</small>
+                                    {% if order.estimated_delivery %}
+                                    <br><small class="text-info">
+                                        <i class="fas fa-clock"></i> ETA: {{ order.estimated_delivery.strftime('%I:%M %p') }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <h6 class="text-muted">Status</h6>
+                                <span class="badge bg-{{ order.get_status_color() }} fs-6">
+                                    {{ order.status.replace('_', ' ').title() }}
+                                </span>
+                            </div>
+
+                            {% if order.delivery_person %}
+                            <div class="mb-3">
+                                <h6 class="text-muted">Delivery Person</h6>
+                                <div>
+                                    <i class="fas fa-truck text-success"></i> 
+                                    {{ order.delivery_person.full_name or order.delivery_person.username }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Items -->
+                        <div class="col-lg-5">
+                            <h6 class="text-muted mb-3">Order Items</h6>
+                            {% for item in order.get_items() %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-primary rounded-pill me-2">{{ item.quantity }}</span>
+                                    <span>{{ item.name }}</span>
+                                </div>
+                                <span>₹{{ "%.2f"|format(item.total) }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Delivery Info -->
+                        <div class="col-lg-2">
+                            <h6 class="text-muted">Delivery Address</h6>
+                            <p class="small">{{ order.customer_address }}</p>
+                            <h6 class="text-muted">Phone</h6>
+                            <p class="small">{{ order.customer_phone }}</p>
+                        </div>
+
+                        <!-- Total -->
+                        <div class="col-lg-2 text-end">
+                            <div class="mb-2">
+                                <span class="text-muted">Subtotal:</span>
+                                <br><span>₹{{ "%.2f"|format(order.subtotal) }}</span>
+                            </div>
+                            {% if order.discount > 0 %}
+                            <div class="mb-2">
+                                <span class="text-success">Discount:</span>
+                                <br><span class="text-success">-₹{{ "%.2f"|format(order.discount) }}</span>
+                            </div>
+                            {% endif %}
+                            <hr>
+                            <div class="mb-3">
+                                <span class="fw-bold">Total:</span>
+                                <br><span class="fs-4 fw-bold text-primary">₹{{ "%.2f"|format(order.total) }}</span>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-grid gap-2">
+                                {% if order.status == 'delivered' and not order.rating %}
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="rateOrder({{ order.id }})">
+                                            <i class="fas fa-star"></i> Rate Order
+                                        </button>
+                                    </div>
+                                    {% elif order.rating %}
+                                    <div class="mt-3">
+                                        <small class="text-muted">Your Rating:</small><br>
+                                        <div class="text-warning mb-2">
+                                            {% for i in range(order.rating) %}
+                                                <i class="fas fa-star"></i>
+                                            {% endfor %}
+                                            {% for i in range(5 - order.rating) %}
+                                                <i class="far fa-star"></i>
+                                            {% endfor %}
+                                        </div>
+                                        {% if order.feedback %}
+                                            <p class="small text-muted">"{{ order.feedback }}"</p>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+
+                                    <!-- Reorder Button -->
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-success" onclick="reorder('{{ order.order_id }}')">
+                                            <i class="fas fa-redo"></i> Reorder
+                                        </button>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <strong>Payment Method:</strong><br>
+                            <span class="badge bg-info">{{ order.payment_method.title().replace('_', ' ') }}</span>
+                            {% if order.payment_method == 'upi' and order.status in ['pending', 'confirmed'] %}
+                                <button class="btn btn-sm btn-outline-primary ms-2" onclick="showPaymentQR('{{ order.order_id }}')">
+                                    <i class="fas fa-qrcode"></i> Show QR
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mt-4">
+                        <div class="progress position-relative" style="height: 30px;">
+                            {% set progress_map = {'pending': 20, 'confirmed': 40, 'preparing': 60, 'out_for_delivery': 80, 'delivered': 100, 'cancelled': 0} %}
+                            {% set progress = progress_map.get(order.status, 0) %}
+
+                            <div class="progress-bar bg-{{ order.get_status_color() }} progress-bar-striped progress-bar-animated" 
+                                 style="width: {{ progress }}%"></div>
+
+                            <div class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center">
+                                <span class="text-dark fw-bold">
+                                    {% if order.status == 'cancelled' %}
+                                        Order Cancelled
+                                    {% else %}
+                                        {{ order.status.replace('_', ' ').title() }}
+                                        {% if progress < 100 %} ({{ progress }}%){% endif %}
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Timeline -->
+                    <div class="mt-4">
+                        <h6 class="text-muted mb-3">Order Timeline</h6>
+                        <div class="timeline">
+                            <div class="timeline-item {% if order.status in ['pending', 'confirmed', 'preparing', 'out_for_delivery', 'delivered'] %}active{% endif %}">
+                                <i class="fas fa-shopping-cart"></i>
+                                <div class="timeline-content">
+                                    <h6>Order Placed</h6>
+                                    <small>{{ order.created_at.strftime('%I:%M %p') }}</small>
+                                </div>
+                            </div>
+
+                            <div class="timeline-item {% if order.status in ['confirmed', 'preparing', 'out_for_delivery', 'delivered'] %}active{% endif %}">
+                                <i class="fas fa-check"></i>
+                                <div class="timeline-content">
+                                    <h6>Order Confirmed</h6>
+                                    <small>We're preparing your order</small>
+                                </div>
+                            </div>
+
+                            <div class="timeline-item {% if order.status in ['preparing', 'out_for_delivery', 'delivered'] %}active{% endif %}">
+                                <i class="fas fa-utensils"></i>
+                                <div class="timeline-content">
+                                    <h6>Preparing</h6>
+                                    <small>Chef is cooking your food</small>
+                                </div>
+                            </div>
+
+                            <div class="timeline-item {% if order.status in ['out_for_delivery', 'delivered'] %}active{% endif %}">
+                                <i class="fas fa-truck"></i>
+                                <div class="timeline-content">
+                                    <h6>Out for Delivery</h6>
+                                    <small>On the way to you</small>
+                                </div>
+                            </div>
+
+                            <div class="timeline-item {% if order.status == 'delivered' %}active{% endif %}">
+                                <i class="fas fa-check-circle"></i>
+                                <div class="timeline-content">
+                                    <h6>Delivered</h6>
+                                    <small>Enjoy your meal!</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if order.rating %}
+                    <div class="mt-4">
+                        <h6 class="text-muted mb-2">Your Rating</h6>
+                        <div class="text-warning mb-2">
+                            {% for i in range(order.rating) %}
+                                <i class="fas fa-star"></i>
+                            {% endfor %}
+                            {% for i in range(5 - order.rating) %}
+                                <i class="far fa-star"></i>
+                            {% endfor %}
+                        </div>
+                        {% if order.feedback %}
+                            <p class="small text-muted">"{{ order.feedback }}"</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if single_order %}
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="{{ url_for('menu') }}" class="btn btn-primary btn-lg me-3">
+                <i class="fas fa-utensils"></i> Order Again
+            </a>
+            <a href="{{ url_for('home') }}" class="btn btn-outline-secondary btn-lg">
+                <i class="fas fa-home"></i> Go Home
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- No Orders -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card text-center">
+                <div class="card-body py-5">
+                    <div class="fs-1 text-muted mb-4">
+                        <i class="fas fa-list-alt"></i>
+                    </div>
+                    <h3>No orders yet</h3>
+                    <p class="text-muted mb-4">You haven't placed any orders. Start exploring our delicious menu!</p>
+                    <a href="{{ url_for('menu') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-utensils"></i> Explore Menu
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Rating Modal -->
+<div class="modal fade" id="ratingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-star"></i> Rate Your Order
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="rating-form" method="POST" action="/rate_order">
+                <div class="modal-body">
+                    <input type="hidden" id="order_id" name="order_id">
+
+                    <div class="text-center mb-4">
+                        <h6>How was your experience?</h6>
+                        <div class="rating-stars fs-2">
+                            <i class="far fa-star" data-rating="1"></i>
+                            <i class="far fa-star" data-rating="2"></i>
+                            <i class="far fa-star" data-rating="3"></i>
+                            <i class="far fa-star" data-rating="4"></i>
+                            <i class="far fa-star" data-rating="5"></i>
+                        </div>
+                        <input type="hidden" id="rating" name="rating" value="0">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="feedback" class="form-label">Feedback (Optional)</label>
+                        <textarea class="form-control" id="feedback" name="feedback" rows="3" 
+                                  placeholder="Tell us about your experience..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-star"></i> Submit Rating
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Payment QR Modal -->
+<div class="modal fade" id="paymentQRModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-qrcode"></i> Scan to Pay
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p>Scan the QR code with your UPI app to complete the payment.</p>
+                <img id="order-qr-code" src="" alt="UPI Payment QR Code" style="max-width: 250px; height: auto;">
+                <p class="mt-3">UPI ID: <strong>7903102794@ptsbi</strong></p>
+                <p class="text-muted small">Amount: <strong id="qr-amount"></strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function rateOrder(orderId) {
+        document.getElementById('order_id').value = orderId;
+        document.getElementById('rating').value = 0;
+        document.getElementById('feedback').value = '';
+
+        // Reset stars
+        document.querySelectorAll('.rating-stars i').forEach(star => {
+            star.className = 'far fa-star';
+        });
+
+        new bootstrap.Modal(document.getElementById('ratingModal')).show();
+    }
+
+    function cancelOrder(orderId) {
+        if (confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+            // In a real app, this would make an API call
+            fetch('/cancel_order', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({order_id: orderId})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Failed to cancel order');
+                }
+            })
+            .catch(error => {
+                alert('Error cancelling order');
+                console.error('Error:', error);
+            });
+        }
+    }
+
+    function reorder(order_id) {
+        if (confirm('Add the same items to your cart?')) {
+            fetch('/api/reorder', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({order_id: order_id})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message || 'Items added to cart!');
+                    window.location.href = '/cart';
+                } else {
+                    alert(data.message || 'Failed to reorder');
+                }
+            })
+            .catch(error => {
+                alert('Error processing reorder');
+                console.error('Error:', error);
+            });
+        }
+    }
+
+    function showPaymentQR(orderId) {
+        fetch(`/get_order_details/${orderId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.order) {
+                    const order = data.order;
+                    const qrCodeUrl = `/generate_upi_qr?vpa=7903102794@ptsbi&amount=${order.total}&order_id=${order.order_id}`;
+                    document.getElementById('order-qr-code').src = qrCodeUrl;
+                    document.getElementById('qr-amount').textContent = `₹${order.total.toFixed(2)}`;
+                    new bootstrap.Modal(document.getElementById('paymentQRModal')).show();
+                } else {
+                    alert('Could not retrieve order details for QR code.');
+                }
+            })
+            .catch(error => {
+                alert('Error fetching order details for QR code.');
+                console.error('Error:', error);
+            });
+    }
+
+    // Rating stars interaction
+    document.querySelectorAll('.rating-stars i').forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = parseInt(this.dataset.rating);
+            document.getElementById('rating').value = rating;
+
+            // Update star display
+            document.querySelectorAll('.rating-stars i').forEach((s, index) => {
+                if (index < rating) {
+                    s.className = 'fas fa-star text-warning';
+                } else {
+                    s.className = 'far fa-star';
+                }
+            });
+        });
+
+        star.addEventListener('mouseover', function() {
+            const rating = parseInt(this.dataset.rating);
+
+            document.querySelectorAll('.rating-stars i').forEach((s, index) => {
+                if (index < rating) {
+                    s.className = 'fas fa-star text-warning';
+                } else {
+                    s.className = 'far fa-star';
+                }
+            });
+        });
+    });
+
+    // Rating form validation
+    document.getElementById('rating-form').addEventListener('submit', function(e) {
+        const rating = document.getElementById('rating').value;
+        if (rating == 0) {
+            e.preventDefault();
+            alert('Please select a rating');
+            return false;
+        }
+    });
+
+    // Auto-refresh for active orders
+    {% if orders %}
+        {% set has_active_order = false %}
+        {% for order in orders %}
+            {% if order.status in ['pending', 'confirmed', 'preparing', 'out_for_delivery'] %}
+                {% set has_active_order = true %}
+            {% endif %}
+        {% endfor %}
+        {% if has_active_order %}
+            setInterval(function() {
+                if (document.visibilityState === 'visible') {
+                    location.reload();
+                }
+            }, 30000); // Refresh every 30 seconds
+        {% endif %}
+    {% endif %}
+
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+</script>
+
+<style>
+    .timeline {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        padding: 0 20px;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 20px;
+        right: 20px;
+        height: 2px;
+        background: #e9ecef;
+        z-index: 1;
+    }
+
+    .timeline-item {
+        position: relative;
+        text-align: center;
+        z-index: 2;
+    }
+
+    .timeline-item i {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e9ecef;
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
+
+    .timeline-item.active i {
+        background: #28a745;
+        color: white;
+    }
+
+    .timeline-content h6 {
+        margin-bottom: 5px;
+        font-size: 0.8rem;
+    }
+
+    .timeline-content small {
+        font-size: 0.7rem;
+        color: #6c757d;
+    }
+
+    .rating-stars i {
+        cursor: pointer;
+        margin: 0 2px;
+        transition: all 0.2s;
+    }
+
+    .rating-stars i:hover {
+        transform: scale(1.1);
+    }
+</style>
+{% endblock %}

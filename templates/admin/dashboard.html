@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5">
+                        <i class="fas fa-tachometer-alt text-primary"></i> Admin Dashboard
+                    </h1>
+                    <p class="text-muted">Manage your Biryani Club operations</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary" onclick="location.reload()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="fs-1 text-primary mb-3">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <h3 class="card-title">{{ total_orders }}</h3>
+                    <p class="card-text text-muted">Total Orders</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="fs-1 text-success mb-3">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <h3 class="card-title">₹{{ "%.2f"|format(total_revenue) }}</h3>
+                    <p class="card-text text-muted">Total Revenue</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="fs-1 text-info mb-3">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="card-title">{{ total_customers }}</h3>
+                    <p class="card-text text-muted">Total Customers</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="fs-1 text-warning mb-3">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3 class="card-title">{{ pending_orders }}</h3>
+                    <p class="card-text text-muted">Pending Orders</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt"></i> Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6 col-lg-3">
+                            <a href="{{ url_for('admin_menu') }}" class="btn btn-primary w-100">
+                                <i class="fas fa-utensils"></i><br>
+                                Manage Menu
+                            </a>
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <a href="{{ url_for('admin_orders') }}" class="btn btn-success w-100">
+                                <i class="fas fa-list-alt"></i><br>
+                                View Orders
+                            </a>
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <button class="btn btn-info w-100" onclick="toggleStoreStatus()">
+                                <i class="fas fa-store"></i><br>
+                                Store Status
+                            </button>
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <a href="{{ url_for('menu') }}" class="btn btn-warning w-100" target="_blank">
+                                <i class="fas fa-eye"></i><br>
+                                Preview Menu
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Recent Orders -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock"></i> Recent Orders
+                    </h5>
+                    <a href="{{ url_for('admin_orders') }}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Time</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td><strong>{{ order.order_id }}</strong></td>
+                                    <td>{{ order.customer_name }}</td>
+                                    <td>₹{{ "%.2f"|format(order.total) }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ order.get_status_color() }}">
+                                            {{ order.status.replace('_', ' ').title() }}
+                                        </span>
+                                    </td>
+                                    <td class="text-muted">
+                                        {{ order.created_at.strftime('%I:%M %p') }}
+                                    </td>
+                                    <td>
+                                        <form action="{{ url_for('admin_update_order', order_id=order.id) }}" method="POST" class="d-inline">
+                                            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                                <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Pending</option>
+                                                <option value="confirmed" {% if order.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                                <option value="preparing" {% if order.status == 'preparing' %}selected{% endif %}>Preparing</option>
+                                                <option value="out_for_delivery" {% if order.status == 'out_for_delivery' %}selected{% endif %}>Out for Delivery</option>
+                                                <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                                                <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                            </select>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <div class="fs-2 text-muted mb-3">
+                            <i class="fas fa-inbox"></i>
+                        </div>
+                        <p class="text-muted">No recent orders</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Items -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-fire text-danger"></i> Popular Items
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if popular_items %}
+                    {% for item in popular_items %}
+                    <div class="d-flex align-items-center {% if not loop.last %}mb-3{% endif %}">
+                        <div class="fs-3 me-3">{{ item.emoji or '🍽️' }}</div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ item.name }}</h6>
+                            <p class="text-muted mb-0">{{ item.popularity }} orders</p>
+                        </div>
+                        <div class="badge bg-primary">₹{{ "%.0f"|format(item.price) }}</div>
+                    </div>
+                    {% if not loop.last %}<hr>{% endif %}
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-3">
+                        <div class="fs-3 text-muted mb-2">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <p class="text-muted">No popular items yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleStoreStatus() {
+        if (confirm('Toggle store status? This will affect customer ability to place orders.')) {
+            fetch('/toggle_store_status', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload(); // Refresh to show updated status
+                } else {
+                    alert('Failed to toggle store status');
+                }
+            })
+            .catch(error => {
+                alert('Error toggling store status');
+                console.error('Error:', error);
+            });
+        }
+    }
+
+    // Auto-refresh dashboard every 30 seconds
+    setInterval(function() {
+        // Only refresh if user is still on the page
+        if (document.visibilityState === 'visible') {
+            location.reload();
+        }
+    }, 30000);
+
+    // Highlight pending orders
+    document.addEventListener('DOMContentLoaded', function() {
+        const pendingRows = document.querySelectorAll('tbody tr');
+        pendingRows.forEach(row => {
+            const statusBadge = row.querySelector('.badge');
+            if (statusBadge && statusBadge.textContent.trim() === 'Pending') {
+                row.style.backgroundColor = 'rgba(255, 193, 7, 0.1)';
+            }
+        });
+    });
+</script>
+{% endblock %}
